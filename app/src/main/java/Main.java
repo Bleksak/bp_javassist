@@ -1,25 +1,25 @@
 
 class C {
     int k;
+
+    // C() {
+    // }
+
+    void meme() {
+        new String("adf");
+    }
 }
 
 public class Main {
     public static void main(String... args) {
-        new C();
-        // StringBuilder builder = new StringBuilder();
-        // builder.append("ABC");
-        // builder.append("DEF");
-        // String s = builder.toString();
+        C c = new C();
+        c.meme();
 
-        // StringBuilder builder2 = new StringBuilder();
-        // builder2.append("ABC");
-        // builder2.append("DEF");
-        // String r = builder2.toString();
+        int[] r = new int[20];
 
-        // System.out.println(s);
-        // System.out.println(r);
+        // String[] k = new String[10];
 
-        String s = new String();
+        String s = new String("agarura");
         System.out.println("Hello world!");
     }
 }

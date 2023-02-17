@@ -1,0 +1,4 @@
+inject\AllocationDetector.class
+agent\Transformer.class
+inject\IDuplicateFinder.class
+agent\MemoryAllocationAgent.class
