@@ -2,6 +2,7 @@ package inject;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
@@ -29,14 +30,17 @@ public class AllocationDetector {
     }
 
     public static void registerPrimitiveArray(Object array) {
-        System.out.println("PRIMITIVE ARRAY");
+        StackTraceElement trace = Thread.currentThread().getStackTrace()[2];
+        System.out.println("Primitive array allocated at: " + trace.getFileName() + ":" + trace.getLineNumber());
     }
 
     public static void registerObjectArray(Object[] array) {
-
+        StackTraceElement trace = Thread.currentThread().getStackTrace()[2];
+        System.out.println("Object array allocated at: " + trace.getFileName() + ":" + trace.getLineNumber());
     }
 
     public static void registerMultiArray(Object[] mutliArray) {
-
+        StackTraceElement trace = Thread.currentThread().getStackTrace()[2];
+        System.out.println("Multi array allocated at: " + trace.getFileName() + ":" + trace.getLineNumber());
     }
 }

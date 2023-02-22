@@ -127,7 +127,34 @@ public class Transformer implements ClassFileTransformer {
         int classInfo = constPool.addClassInfo("inject.AllocationDetector");
         int registerMethodIndex = constPool.addMethodrefInfo(classInfo, "registerPrimitiveArray", "(Ljava/lang/Object;)V");
 
+        Gap dupOpcodePos = iterator.insertGapAt(pos + 2, 4, true);
+        iterator.writeByte(Opcode.DUP, dupOpcodePos.position);
+        iterator.writeByte(Opcode.INVOKESTATIC, dupOpcodePos.position + 1);
+        iterator.write16bit(registerMethodIndex, dupOpcodePos.position + 2);
+        codeAttribute.setMaxStack(codeAttribute.getMaxStack() + 1);
+        codeAttribute.setMaxLocals(codeAttribute.getMaxLocals() + 1);
+    }
+
+    private void opcodeANewArray(CodeIterator iterator, int pos, ConstPool constPool, CodeAttribute codeAttribute) throws BadBytecode {
+        int classInfo = constPool.addClassInfo("inject.AllocationDetector");
+        int registerMethodIndex = constPool.addMethodrefInfo(classInfo, "registerObjectArray", "([Ljava/lang/Object;)V");
+
         Gap dupOpcodePos = iterator.insertGapAt(pos + 3, 4, true);
+        iterator.writeByte(Opcode.DUP, dupOpcodePos.position);
+        iterator.writeByte(Opcode.INVOKESTATIC, dupOpcodePos.position + 1);
+        iterator.write16bit(registerMethodIndex, dupOpcodePos.position + 2);
+        codeAttribute.setMaxStack(codeAttribute.getMaxStack() + 1);
+        codeAttribute.setMaxLocals(codeAttribute.getMaxLocals() + 1);
+    }
+
+    private void opcodeMultiANewArray(CodeIterator iterator, int pos, ConstPool constPool, CodeAttribute codeAttribute) throws BadBytecode {
+        int classInfo = constPool.addClassInfo("inject.AllocationDetector");
+        int registerMethodIndex = constPool.addMethodrefInfo(classInfo, "registerMultiArray", "([Ljava/lang/Object;)V");
+
+        // int dimensions = iterator.byteAt(pos + 3);
+        // System.out.println(dimensions);
+
+        Gap dupOpcodePos = iterator.insertGapAt(pos + 4, 4, true);
         iterator.writeByte(Opcode.DUP, dupOpcodePos.position);
         iterator.writeByte(Opcode.INVOKESTATIC, dupOpcodePos.position + 1);
         iterator.write16bit(registerMethodIndex, dupOpcodePos.position + 2);
@@ -137,13 +164,6 @@ public class Transformer implements ClassFileTransformer {
 
     private void findNewKeyword(CtMethod method) throws BadBytecode {
 
-        // TODO: this only works for Opcode.NEW anyway, so we need to find a better way
-        int[] opcodes = new int[] {Opcode.NEW, Opcode.NEWARRAY, Opcode.ANEWARRAY, Opcode.MULTIANEWARRAY};
-        int[] offsets = new int[] {3, 2, 3, 4};
-        String[] methodArgs = {"(Ljava/lang/Object;)V", "(Ljava/lang/Object;)V", "([Ljava/lang/Object;)V", "([Ljava/lang/Object;)V"};
-        String[] injectMethods = new String[] {"registerObject", "registerPrimitiveArray", "registerObjectArray", "registerMutliArray"};
-
-        // System.out.println("Editing method: " + method.getName());
         MethodInfo methodInfo = method.getMethodInfo();
         CodeAttribute codeAttribute = methodInfo.getCodeAttribute();
         CodeIterator iterator = codeAttribute.iterator();
@@ -160,13 +180,17 @@ public class Transformer implements ClassFileTransformer {
             if(op == Opcode.NEWARRAY) {
                 opcodeNewArray(iterator, pos, constPool, codeAttribute);
             }
-                // "try {"
-                // + "inject.AllocationDetector.getInstance().register(this);"
-                // + "} catch (java.lang.NoClassDefFoundError e) {"
-                // + "}");
+
+            if(op == Opcode.ANEWARRAY) {
+                opcodeANewArray(iterator, pos, constPool, codeAttribute);
+            }
+
+            if(op == Opcode.MULTIANEWARRAY) {
+                opcodeMultiANewArray(iterator, pos, constPool, codeAttribute);
+            }
         }
 
-        InstructionPrinter printer = new InstructionPrinter(System.out);
-        printer.print(method);
+        // InstructionPrinter printer = new InstructionPrinter(System.out);
+        // printer.print(method);
     }
 }
