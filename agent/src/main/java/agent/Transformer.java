@@ -6,14 +6,12 @@ import java.lang.instrument.IllegalClassFormatException;
 import java.security.ProtectionDomain;
 import javassist.CannotCompileException;
 import javassist.ClassPool;
-import javassist.CtBehavior;
 import javassist.CtClass;
 import javassist.CtMethod;
 import javassist.bytecode.BadBytecode;
 import javassist.bytecode.CodeAttribute;
 import javassist.bytecode.CodeIterator;
 import javassist.bytecode.ConstPool;
-import javassist.bytecode.InstructionPrinter;
 import javassist.bytecode.MethodInfo;
 import javassist.bytecode.Opcode;
 import javassist.bytecode.CodeIterator.Gap;
@@ -77,7 +75,6 @@ public class Transformer implements ClassFileTransformer {
         } catch (BadBytecode e) {
             e.printStackTrace();
         } catch (CannotCompileException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         }
         return classfileBuffer;

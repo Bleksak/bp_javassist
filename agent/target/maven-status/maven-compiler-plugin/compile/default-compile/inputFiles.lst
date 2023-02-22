@@ -1,4 +1,4 @@
-D:\school_dev\BP\bp_javassist\agent\src\main\java\inject\IDuplicateFinder.java
-D:\school_dev\BP\bp_javassist\agent\src\main\java\inject\AllocationDetector.java
-D:\school_dev\BP\bp_javassist\agent\src\main\java\agent\Transformer.java
-D:\school_dev\BP\bp_javassist\agent\src\main\java\agent\MemoryAllocationAgent.java
+D:\skola_prog\BP\bp_javassist\agent\src\main\java\agent\MemoryAllocationAgent.java
+D:\skola_prog\BP\bp_javassist\agent\src\main\java\agent\Transformer.java
+D:\skola_prog\BP\bp_javassist\agent\src\main\java\inject\AllocationDetector.java
+D:\skola_prog\BP\bp_javassist\agent\src\main\java\inject\IDuplicateFinder.java
