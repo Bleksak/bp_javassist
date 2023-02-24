@@ -1,23 +1,40 @@
 
-// class C {
-//     int k;
+class B {
+    int a;
+    B() {
 
-    // C() {
+    }
+
+    void printA() {
+        System.out.println(a);
+    }
+}
+
+class C {
+    int k;
+    B b = new B();
+
+    C() {
+    }
+
+    // void meme() {
+    //     new String("adf");
     // }
 
-//     void meme() {
-//         new String("adf");
-//     }
-// }
+    // void meme(int a) {
+    //     new String("rere");
+    // }
+}
 
 public class Main {
 
-    // static void m(Object o) {
-    //     System.out.println(o);
-    // }
-
     public static void main(String... args) {
-        String object = new String("This is a string!");
+        for(int i = 0; i < 10; ++i) {
+            C c = new C();
+        }
+        // c.meme();
+        // c.meme(25);
+        String object = new String("string");
         int[] primitiveArray = new int[30];
         Object[] objectArray = new Object[20];
 

@@ -1,4 +1,6 @@
+agent\MemoryAllocationAgent.class
+inject\AllocationCounter.class
 inject\AllocationDetector.class
 agent\Transformer.class
 inject\IDuplicateFinder.class
-agent\MemoryAllocationAgent.class
+inject\ByteConverter.class

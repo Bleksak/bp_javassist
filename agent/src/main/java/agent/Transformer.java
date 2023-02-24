@@ -3,20 +3,28 @@ package agent;
 import java.io.IOException;
 import java.lang.instrument.ClassFileTransformer;
 import java.lang.instrument.IllegalClassFormatException;
+import java.net.URISyntaxException;
 import java.security.ProtectionDomain;
+import java.util.jar.JarFile;
+import java.util.jar.Manifest;
+
 import javassist.CannotCompileException;
 import javassist.ClassPool;
+import javassist.CtBehavior;
 import javassist.CtClass;
+import javassist.CtConstructor;
 import javassist.CtMethod;
 import javassist.bytecode.BadBytecode;
 import javassist.bytecode.CodeAttribute;
 import javassist.bytecode.CodeIterator;
 import javassist.bytecode.ConstPool;
+import javassist.bytecode.InstructionPrinter;
 import javassist.bytecode.MethodInfo;
 import javassist.bytecode.Opcode;
 import javassist.bytecode.CodeIterator.Gap;
 
 public class Transformer implements ClassFileTransformer {
+
     @Override
     public byte[] transform(ClassLoader loader, String className,
             Class<?> classBeingRedefined,
@@ -24,23 +32,11 @@ public class Transformer implements ClassFileTransformer {
             byte[] classfileBuffer)
             throws IllegalClassFormatException {
         className = className.replace("/", ".");
+
         String[] filter = new String[] {
-                "sun.launcher.LauncherHelper",
-                "java.lang.WeakPairMap$Pair$Weak",
-                "java.lang.WeakPairMap$WeakRefPeer",
-                "java.lang.WeakPairMap$Pair$Weak$1",
-                "java.nio.charset.CharsetDecoder",
-                "sun.nio.cs.SingleByte$Decoder",
-                "sun.nio.cs.ArrayDecoder",
-                "sun.nio.cs.MS1252$Holder",
-                "java.util.jar.JarVerifier",
-                "java.security.CodeSigner",
-                "java.io.RandomAccessFile$1",
-                "java.util.IdentityHashMap$IdentityHashMapIterator",
-                "java.util.IdentityHashMap$KeyIterator",
-                "java.lang.Shutdown",
-                "java.lang.Shutdown$Lock",
-                "inject.AllocationDetector",
+            "inject.AllocationDetector",
+            "inject.AllocationCounter",
+            "inject.ByteConverter",
         };
 
         for (String s : filter) {
@@ -57,12 +53,24 @@ public class Transformer implements ClassFileTransformer {
             ClassPool pool = ClassPool.getDefault();
             CtClass cc = pool.makeClass(new java.io.ByteArrayInputStream(classfileBuffer));
 
-            CtMethod[] staticMethods = cc.getDeclaredMethods();
+            CtMethod[] methods = cc.getDeclaredMethods();
+            CtConstructor[] ctors = cc.getDeclaredConstructors();
 
-            for(CtMethod method : staticMethods) {
+            String jarFile = protectionDomain.getCodeSource().getLocation().toURI().getPath();
+            JarFile jar = new JarFile(jarFile);
+            String mainClass = jar.getManifest().getMainAttributes().getValue("Main-Class");
+            jar.close();
+
+            for(CtMethod method : methods) {
+                if(className.equals(mainClass) && method.getName().equals("main")) {
+                    updateMain(method);
+                }
                 findNewKeyword(method);
             }
 
+            for(CtConstructor method : ctors) {
+                findNewKeyword(method);
+            }
 
             byte[] code = cc.toBytecode();
             cc.detach();
@@ -75,6 +83,9 @@ public class Transformer implements ClassFileTransformer {
         } catch (BadBytecode e) {
             e.printStackTrace();
         } catch (CannotCompileException e) {
+            e.printStackTrace();
+        } catch (URISyntaxException e) {
+            // TODO Auto-generated catch block
             e.printStackTrace();
         }
         return classfileBuffer;
@@ -159,7 +170,13 @@ public class Transformer implements ClassFileTransformer {
         codeAttribute.setMaxLocals(codeAttribute.getMaxLocals() + 1);
     }
 
-    private void findNewKeyword(CtMethod method) throws BadBytecode {
+    private void updateMain(CtMethod main) throws CannotCompileException {
+        ConstPool constPool = main.getMethodInfo().getConstPool();
+        constPool.addClassInfo("inject.AllocationCounter");
+        main.insertAfter("inject.AllocationCounter.printInfo();");
+    }
+
+    private void findNewKeyword(CtBehavior method) throws BadBytecode {
 
         MethodInfo methodInfo = method.getMethodInfo();
         CodeAttribute codeAttribute = methodInfo.getCodeAttribute();

@@ -30,7 +30,6 @@ public class AllocationDetector {
         primitiveArrayIndex.put("[D", 7);
     };
 
-    // private final List<WeakReference<Object>> objects = new ArrayList<>();
     private final static List<String> strings = new ArrayList<>();
 
     public static byte[] objectToByteArray(Object obj) {
@@ -46,9 +45,12 @@ public class AllocationDetector {
 
     public static void registerObject(Object obj) {
         StackTraceElement trace = Thread.currentThread().getStackTrace()[2];
+        byte[] objectBytes = ByteConverter.getBytes(obj);
         System.out.println("Object allocated at: " + trace.getFileName() + ":" + trace.getLineNumber());
-        System.out.println("Object size: " + objectToByteArray(obj).length);
+        System.out.println("Object size: " + objectBytes.length);
         System.out.println("Object type: " + obj.getClass().getSimpleName());
+
+        AllocationCounter.addCounts(trace, objectBytes);
 
         if(obj instanceof String str) {
             strings.add(str);
@@ -57,27 +59,36 @@ public class AllocationDetector {
 
     public static void registerPrimitiveArray(Object array) {
         StackTraceElement trace = Thread.currentThread().getStackTrace()[2];
+        byte[] objectBytes = ByteConverter.getBytes(array);
         System.out.println("Primitive array allocated at: " + trace.getFileName() + ":" + trace.getLineNumber());
-        System.out.println("Array size: " + objectToByteArray(array).length);
+        System.out.println("Array size: " + objectBytes.length);
         System.out.println("Array type: " + array.getClass().getSimpleName());
         int index = primitiveArrayIndex.get(array.getClass().getName());
 
         @SuppressWarnings("unchecked")
         List<Object> bucket = (List<Object>) primitiveArrays.get(index);
         bucket.add(array);
+
+        AllocationCounter.addCounts(trace, objectBytes);
     }
 
     public static void registerObjectArray(Object[] array) {
         StackTraceElement trace = Thread.currentThread().getStackTrace()[2];
+        byte[] objectBytes = ByteConverter.getBytes(array);
         System.out.println("Object array allocated at: " + trace.getFileName() + ":" + trace.getLineNumber());
-        System.out.println("Array size: " + objectToByteArray(array).length);
+        System.out.println("Array size: " + objectBytes.length);
         System.out.println("Array type: " + array.getClass().getSimpleName());
+
+        AllocationCounter.addCounts(trace, objectBytes);
     }
 
     public static void registerMultiArray(Object[] array) {
         StackTraceElement trace = Thread.currentThread().getStackTrace()[2];
+        byte[] objectBytes = ByteConverter.getBytes(array);
         System.out.println("Multi array allocated at: " + trace.getFileName() + ":" + trace.getLineNumber());
-        System.out.println("Array size: " + objectToByteArray(array).length);
+        System.out.println("Array size: " + objectBytes.length);
         System.out.println("Array type: " + array.getClass().getSimpleName());
+
+        AllocationCounter.addCounts(trace, objectBytes);
     }
 }
