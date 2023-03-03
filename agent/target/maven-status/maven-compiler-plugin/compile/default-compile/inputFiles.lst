@@ -1,4 +1,4 @@
-D:\school_dev\BP\bp_javassist\agent\src\main\java\inject\IDuplicateFinder.java
+D:\school_dev\BP\bp_javassist\agent\src\main\java\inject\DuplicateFinder.java
 D:\school_dev\BP\bp_javassist\agent\src\main\java\inject\ByteConverter.java
 D:\school_dev\BP\bp_javassist\agent\src\main\java\inject\AllocationDetector.java
 D:\school_dev\BP\bp_javassist\agent\src\main\java\agent\Transformer.java

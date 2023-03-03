@@ -11,8 +11,10 @@ class B {
 }
 
 class C {
+    // int[] a = new int[1024];
+    // B b = new B();
     int k;
-    B b = new B();
+    int r;
 
     C() {
     }
@@ -29,15 +31,20 @@ class C {
 public class Main {
 
     public static void main(String... args) {
-        for(int i = 0; i < 10; ++i) {
-            C c = new C();
-        }
+        C c = new C();
+        C a = new C();
+
+        // for(int i = 0; i < 10; ++i) {
+        // }
         // c.meme();
         // c.meme(25);
-        String object = new String("string");
-        int[] primitiveArray = new int[30];
-        Object[] objectArray = new Object[20];
+        // String object = new String("string");
+        // int[] primitiveArray = new int[30];
+        // Object[] objectArray = new Object[20];
 
-        Object multiArray = new Object[20][10][30][40];
+        // C[][][][] multiArray = new C[20][10][30][40];
+        // C[] justArray = new C[10];
+
+        // while(true) {}
     }
 }

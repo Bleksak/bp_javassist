@@ -31,17 +31,7 @@ public class AllocationDetector {
     };
 
     private final static List<String> strings = new ArrayList<>();
-
-    public static byte[] objectToByteArray(Object obj) {
-        try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            ObjectOutputStream oos = new ObjectOutputStream(baos)) {
-
-            oos.writeObject(obj);
-            return baos.toByteArray();
-        } catch (IOException e) {
-            return new byte[0];
-        }
-    }
+    private final static HashMap<String, List<Object>> objectMap = new HashMap<>();
 
     public static void registerObject(Object obj) {
         StackTraceElement trace = Thread.currentThread().getStackTrace()[2];
@@ -54,6 +44,15 @@ public class AllocationDetector {
 
         if(obj instanceof String str) {
             strings.add(str);
+        } else {
+            String className = obj.getClass().getName();
+            if(!objectMap.containsKey(className)) {
+                objectMap.put(className, new ArrayList<>());
+            }
+
+            List<Object> list = objectMap.get(className);
+            list.add(obj);
+            DuplicateFinder.countDuplicates(obj, objectMap);
         }
     }
 

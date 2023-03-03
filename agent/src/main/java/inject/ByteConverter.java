@@ -64,7 +64,30 @@ public class ByteConverter {
     }
 
     public static byte[] getBytes(Object obj) {
-        if(obj instanceof Serializable) {
+
+        if(obj == null) {
+            return new byte[Integer.BYTES];
+        }
+
+        if(obj instanceof Object[] arr) {
+            
+            List<Byte> bytes = new ArrayList<>();
+
+            for(Object o : arr) {
+                for(byte b : getBytes(o)) {
+                    bytes.add(b);
+                }
+            }
+
+            byte[] byteArray = new byte[bytes.size()];
+            for (int i = 0; i < bytes.size(); i++) {
+                byteArray[i] = bytes.get(i);
+            }
+
+            return byteArray;
+        }
+
+        if(obj instanceof Serializable && !(obj instanceof Object[])) {
             return objectToByteArray(obj);
         } else {
             // Get the class of the objects
