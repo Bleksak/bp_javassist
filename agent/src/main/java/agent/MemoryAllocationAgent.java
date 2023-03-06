@@ -2,13 +2,10 @@ package agent;
 
 import java.io.IOException;
 import java.lang.instrument.ClassDefinition;
-import java.lang.instrument.ClassFileTransformer;
 import java.lang.instrument.Instrumentation;
 import java.lang.instrument.UnmodifiableClassException;
-import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.jar.JarFile;
 
 import javassist.CannotCompileException;
 import javassist.ClassPool;
@@ -24,7 +21,7 @@ public class MemoryAllocationAgent {
         HashMap<String, Class<?>> injectedClasses = new HashMap<>();
         injectedClasses.put("inject.AllocationDetector", inject.AllocationDetector.class);
         injectedClasses.put("inject.AllocationCounter", inject.AllocationCounter.class);
-        injectedClasses.put("inject.ByteConverter", inject.ByteConverter.class);
+        // injectedClasses.put("inject.ByteConverter", inject.ByteConverter.class);
 
         try {
             for(Map.Entry<String, Class<?>> clazz : injectedClasses.entrySet()) {

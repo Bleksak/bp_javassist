@@ -1,6 +1,10 @@
+inject\IDuplicateEquals.class
+agent\OpcodeData.class
 inject\DuplicateFinder.class
 agent\MemoryAllocationAgent.class
 inject\AllocationCounter.class
 inject\AllocationDetector.class
 agent\Transformer.class
+inject\DuplicateDeepEquals.class
+inject\DuplicateShallowEquals.class
 inject\ByteConverter.class

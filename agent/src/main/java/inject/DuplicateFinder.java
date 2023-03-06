@@ -1,45 +1,55 @@
 package inject;
 
-import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.List;
 
-public class DuplicateFinder {
-    public static int countDuplicates(Object obj, HashMap<String, List<Object>> objects) {
+public class DuplicateFinder extends Thread {
+    private HashMap<String, List<Object>> objects;
+    private IDuplicateEquals eq;
 
-        Class<?> clazz = obj.getClass();
+    public int countDuplicates(Object obj) {
 
-        String className = clazz.getName();
+        String className = obj.getClass().getName();
         List<Object> arr = objects.get(className);
 
         int duplicates = 0;
 
-        for(int i = 0; i < arr.size(); ++i) {
-            boolean dup = true;
-
-            if(arr.get(i) == obj) continue; // it's this exact object, don't count it as a duplicate
-
-            for(Field f : clazz.getDeclaredFields()) {
-                f.setAccessible(true);
-
-                try {
-                    Object val1 = f.get(obj);
-                    Object val2 = f.get(arr.get(i));
-
-                    if(val1 != val2) {
-                        dup = false;
-                        break;
-                    }
-                } catch (IllegalAccessException e) {
-                    System.out.println(e.getMessage());
-                }
-            }
-
-            if(dup) {
+        for(Object o : arr) {
+            if(o == obj) continue; // it's this exact object, don't count it
+            if(eq.eq(o, obj)) {
                 duplicates++;
             }
         }
 
         return duplicates;
+    }
+
+    public DuplicateFinder(HashMap<String, List<Object>> objects, IDuplicateEquals eq) {
+        this.objects = objects;
+        this.eq = eq;
+    }
+
+    @Override
+    public void run() {
+        while(true) {
+            try {
+                System.out.println("Running thread");
+                synchronized(objects) {
+                    for(List<Object> list : objects.values()) {
+                        for(Object o : list) {
+                            int duplicates = countDuplicates(o);
+
+                            if(duplicates > 0) {
+                                System.out.println("Found " + duplicates + " duplicates of object: " + o.getClass().getName());
+                            }
+                        }
+                    }
+                }
+
+                Thread.sleep(3000);
+            } catch (InterruptedException e) {
+                return;
+            }
+        }
     }
 }

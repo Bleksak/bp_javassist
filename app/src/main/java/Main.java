@@ -1,49 +1,68 @@
+// class CyclicA {
+//     public CyclicB b;
+// }
 
-class B {
+// class CyclicB {
+//     public CyclicA a;
+// }
+
+// class C {
+//     int k = 10;
+//     double f = 21.3f;
+// }
+
+class Complex {
+    Complex next;
     int a;
-    B() {
 
+    Complex(int i, Complex n) {
+        a = i;
+        next = n;
     }
-
-    void printA() {
-        System.out.println(a);
-    }
-}
-
-class C {
-    // int[] a = new int[1024];
-    // B b = new B();
-    int k;
-    int r;
-
-    C() {
-    }
-
-    // void meme() {
-    //     new String("adf");
-    // }
-
-    // void meme(int a) {
-    //     new String("rere");
-    // }
 }
 
 public class Main {
 
+    // public static void cyclicTest() {
+    //     CyclicA a = new CyclicA();
+    //     CyclicB b = new CyclicB();
+    //     a.b = b;
+    //     b.a = a;
+
+    //     CyclicA a2 = new CyclicA();
+    //     CyclicB b2 = new CyclicB();
+    //     a2.b = b2;
+    //     b2.a = a2;
+    // }
+
+    // public static void simpleObjectTest() {
+    //     C a = new C();
+    //     C b = new C();
+    // }
+
+    public static void deepObjectTest() {
+        // Complex c = new Complex(2, null);
+        // Complex cx = new Complex(1, c);
+        // Complex cx1 = new Complex(0, cx);
+        Complex cx2 = new Complex(0, new Complex(1, new Complex(2, null)));
+        // Complex cx3 = new Complex(0, null);
+    }
+
     public static void main(String... args) {
-        C c = new C();
-        C a = new C();
+        for(int i = 0; i < 10; ++i) {
+            deepObjectTest();
+        }
 
         // for(int i = 0; i < 10; ++i) {
         // }
-        // c.meme();
-        // c.meme(25);
+        // c.m();
         // String object = new String("string");
         // int[] primitiveArray = new int[30];
         // Object[] objectArray = new Object[20];
 
         // C[][][][] multiArray = new C[20][10][30][40];
-        // C[] justArray = new C[10];
+        // C[]
+        // C[] justArray = new C[20];
 
         // while(true) {}
     }
