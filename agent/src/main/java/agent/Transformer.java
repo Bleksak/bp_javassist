@@ -92,8 +92,8 @@ public class Transformer implements ClassFileTransformer {
         // String cname = constPool.getClassInfo(index);
         // System.out.println("new " + cname + "();");
 
-        int classInfo = constPool.addClassInfo("inject.AllocationDetector");
-        int registerMethodIndex = constPool.addMethodrefInfo(classInfo, "registerObject", "(Ljava/lang/Object;)V");
+        // int classInfo = constPool.addClassInfo("inject.AllocationDetector");
+        // int registerMethodIndex = constPool.addMethodrefInfo(classInfo, "registerObject", "(Ljava/lang/Object;)V");
 
         int indexbyte1 = iterator.byteAt(pos + 1);
         int indexbyte2 = iterator.byteAt(pos + 2);
@@ -110,8 +110,8 @@ public class Transformer implements ClassFileTransformer {
         // invokespecial should always be present, otherwise the object is unitialized
         // TODO: invokespecial is used to call <init>, private methods, and methods that are final, need to find a way to pair it correctly
 
-        int currentOpcode;
-        boolean found = false;
+        // int currentOpcode;
+        // boolean found = false;
         // int pos;
 
         // do {

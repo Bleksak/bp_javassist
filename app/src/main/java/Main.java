@@ -1,3 +1,5 @@
+import java.util.Optional;
+
 class CyclicA {
     public CyclicB b;
 }
@@ -21,7 +23,23 @@ class Complex {
     }
 }
 
+class OptionalWillFail {
+    Optional<Integer> test;
+    OptionalWillFail() {
+        test = Optional.empty();
+    }
+
+    OptionalWillFail(Integer a) {
+        test = Optional.of(a);
+    }
+}
+
 public class Main {
+
+    public static void optionalTest() {
+        OptionalWillFail owf1 = new OptionalWillFail(12);
+        OptionalWillFail owf2 = new OptionalWillFail(12);
+    }
 
     public static void cyclicTest() {
         CyclicA a = new CyclicA();
@@ -53,7 +71,8 @@ public class Main {
         //     deepObjectTest();
         // }
 
-        cyclicTest();
+        // cyclicTest();
+        optionalTest();
 
         // for(int i = 0; i < 10; ++i) {
         // }
