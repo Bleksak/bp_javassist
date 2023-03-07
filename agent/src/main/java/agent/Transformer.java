@@ -184,7 +184,7 @@ public class Transformer implements ClassFileTransformer {
         String methodName = constPool.getMethodrefName(constPoolIndex);
 
         if(!methodName.contains("<init>")) return;
-        if(!className.equals(className)) return;
+        if(!className.equals(top)) return;
         stack.pop();
 
         int classInfo = constPool.addClassInfo("inject.AllocationDetector");
