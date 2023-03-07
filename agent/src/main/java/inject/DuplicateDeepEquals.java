@@ -1,17 +1,17 @@
 package inject;
 
 import java.lang.reflect.Field;
+import java.util.HashSet;
 
 public class DuplicateDeepEquals implements IDuplicateEquals {
     private static final Class<?>[] primitiveList = new Class[] { char.class, byte.class, short.class, int.class, long.class, boolean.class, 
                                                 Character.class, Byte.class, Short.class, Integer.class, Long.class, Boolean.class, String.class };
 
-    @Override
-    public boolean eq(Object a, Object b) {
 
+    private boolean eqWithCycles(Object a, Object b, HashSet<Integer> visited) {
         // first check if objects are null
 
-        if(a == null && b == null) {
+        if(a == b) {
             return true;
         }
 
@@ -19,9 +19,22 @@ public class DuplicateDeepEquals implements IDuplicateEquals {
             return false;
         }
 
+        int aCode = System.identityHashCode(a);
+        int bCode = System.identityHashCode(b);
+
+        if(visited.contains(aCode)) {
+            return true;
+        }
+
+        if(visited.contains(aCode) || visited.contains(bCode)) {
+            return false;
+        }
+
+        visited.add(aCode);
+        visited.add(bCode);
+
         // we need to check if types of a and b are equal
         // if not, return false
-
 
         Class<?> aClass = a.getClass();
         Class<?> bClass = b.getClass();
@@ -55,7 +68,7 @@ public class DuplicateDeepEquals implements IDuplicateEquals {
                 Object bValue = field.get(b);
 
                 // if equals is not true, we need to recursively call eq
-                if(!eq(aValue, bValue)) {
+                if(!eqWithCycles(aValue, bValue, visited)) {
                     return false;
                 }
 
@@ -66,5 +79,11 @@ public class DuplicateDeepEquals implements IDuplicateEquals {
         }
 
         return true;
+
+    }
+
+    @Override
+    public boolean eq(Object a, Object b) {
+        return eqWithCycles(a, b, new HashSet<>());
     }
 }

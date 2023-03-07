@@ -1,15 +1,15 @@
-// class CyclicA {
-//     public CyclicB b;
-// }
+class CyclicA {
+    public CyclicB b;
+}
 
-// class CyclicB {
-//     public CyclicA a;
-// }
+class CyclicB {
+    public CyclicA a;
+}
 
-// class C {
-//     int k = 10;
-//     double f = 21.3f;
-// }
+class C {
+    int k = 10;
+    double f = 21.3f;
+}
 
 class Complex {
     Complex next;
@@ -23,17 +23,17 @@ class Complex {
 
 public class Main {
 
-    // public static void cyclicTest() {
-    //     CyclicA a = new CyclicA();
-    //     CyclicB b = new CyclicB();
-    //     a.b = b;
-    //     b.a = a;
+    public static void cyclicTest() {
+        CyclicA a = new CyclicA();
+        CyclicB b = new CyclicB();
+        a.b = b;
+        b.a = a;
 
-    //     CyclicA a2 = new CyclicA();
-    //     CyclicB b2 = new CyclicB();
-    //     a2.b = b2;
-    //     b2.a = a2;
-    // }
+        CyclicA a2 = new CyclicA();
+        CyclicB b2 = new CyclicB();
+        a2.b = b2;
+        b2.a = a2;
+    }
 
     // public static void simpleObjectTest() {
     //     C a = new C();
@@ -49,9 +49,11 @@ public class Main {
     }
 
     public static void main(String... args) {
-        for(int i = 0; i < 10; ++i) {
-            deepObjectTest();
-        }
+        // for(int i = 0; i < 10; ++i) {
+        //     deepObjectTest();
+        // }
+
+        cyclicTest();
 
         // for(int i = 0; i < 10; ++i) {
         // }
@@ -64,6 +66,6 @@ public class Main {
         // C[]
         // C[] justArray = new C[20];
 
-        // while(true) {}
+        while(true) {}
     }
 }

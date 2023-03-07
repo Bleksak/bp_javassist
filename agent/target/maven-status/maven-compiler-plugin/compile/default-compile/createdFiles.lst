@@ -1,5 +1,4 @@
 inject\IDuplicateEquals.class
-agent\OpcodeData.class
 inject\DuplicateFinder.class
 agent\MemoryAllocationAgent.class
 inject\AllocationCounter.class

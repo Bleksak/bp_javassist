@@ -47,7 +47,6 @@ public class Transformer implements ClassFileTransformer {
         }
 
         try {
-            System.out.println(className);
             ClassPool pool = ClassPool.getDefault();
             CtClass cc = pool.makeClass(new java.io.ByteArrayInputStream(classfileBuffer));
 
