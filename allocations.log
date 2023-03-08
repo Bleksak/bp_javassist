@@ -1,0 +1,10 @@
+2023-03-08 01:19:15,908 TRACE  [main] Object allocated at: Main.java:44
+2023-03-08 01:19:15,911 TRACE  [main] Object size: 16
+2023-03-08 01:19:15,911 TRACE  [main] Object type: OptionalWillFail
+2023-03-08 01:19:15,911 TRACE  [main] Object allocated at: Main.java:45
+2023-03-08 01:19:15,911 TRACE  [main] Object size: 16
+2023-03-08 01:19:15,911 TRACE  [main] Object type: OptionalWillFail
+2023-03-08 01:19:15,913 INFO  [main] Main.java:44 allocated 16 bytes
+2023-03-08 01:19:15,913 INFO  [main] Main.java:45 allocated 16 bytes
+2023-03-08 01:19:15,913 INFO  [main] Main.java:Main:optionalTest allocated 32 bytes
+2023-03-08 01:19:15,914 INFO  [main] Main.java:Main allocated 32 bytes

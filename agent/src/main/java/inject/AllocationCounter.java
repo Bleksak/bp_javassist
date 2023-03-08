@@ -3,22 +3,27 @@ package inject;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 public class AllocationCounter {
     /**
      * key = filename:line_number
      */
-    public static HashMap<String, Long> lineCounter = new HashMap<>();
+    private static HashMap<String, Long> lineCounter = new HashMap<>();
 
     /**
      * key = filename:classname:methodname
      */
     // TODO: we may have to consider using one more item for key, becuase class can have multiple methods with the same name
-    public static HashMap<String, Long> methodCounter = new HashMap<>();
+    private static HashMap<String, Long> methodCounter = new HashMap<>();
 
     /**
      * key = filename:classname
      */
-    public static HashMap<String, Long> classCounter = new HashMap<>();
+    private static HashMap<String, Long> classCounter = new HashMap<>();
+
+    private final static Logger logger = LogManager.getRootLogger();
 
     public static void addCounts(StackTraceElement stackTrace, long size) {
         String lineCounterString = String.format("%s:%s", stackTrace.getFileName(), stackTrace.getLineNumber());
@@ -35,31 +40,26 @@ public class AllocationCounter {
         classCounter.put(classCounterString, cC + size);
     }
 
-    public static void printInfo() {
-
-        System.out.println("\nApplication allocation summary: ");
-
+    public static void logInfo() {
         for(Map.Entry<String, Long> entry : lineCounter.entrySet()) {
             String line = entry.getKey();
             long allocated = entry.getValue();
 
-            System.out.format("%s allocated: %d bytes\n", line, allocated);
+            logger.info(line + " allocated " + allocated + " bytes");
         }
-        System.out.println();
 
         for(Map.Entry<String, Long> entry : methodCounter.entrySet()) {
             String method = entry.getKey();
             long allocated = entry.getValue();
 
-            System.out.format("%s allocated: %d bytes\n", method, allocated);
+            logger.info(method + " allocated " + allocated + " bytes");
         }
-        System.out.println();
 
         for(Map.Entry<String, Long> entry : classCounter.entrySet()) {
             String clazz = entry.getKey();
             long allocated = entry.getValue();
 
-            System.out.format("%s allocated: %d bytes\n", clazz, allocated);
+            logger.info(clazz + " allocated " + allocated + " bytes");
         }
     }
 }

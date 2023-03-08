@@ -9,8 +9,12 @@ class CyclicB {
 }
 
 class C {
+    int[] a = new int[]{10, 20, 30};
     int k = 10;
     double f = 21.3f;
+    C(int[] k) {
+        a = k;
+    }
 }
 
 class Complex {
@@ -38,7 +42,7 @@ public class Main {
 
     public static void optionalTest() {
         OptionalWillFail owf1 = new OptionalWillFail(12);
-        OptionalWillFail owf2 = new OptionalWillFail(12);
+        OptionalWillFail owf2 = new OptionalWillFail(13);
     }
 
     public static void cyclicTest() {
@@ -53,20 +57,22 @@ public class Main {
         b2.a = a2;
     }
 
-    // public static void simpleObjectTest() {
-    //     C a = new C();
-    //     C b = new C();
-    // }
+    public static void simpleObjectTest() {
+        C a = new C(new int[]{10, 25});
+        C b = new C(new int[]{10, 20});
+    }
 
     public static void deepObjectTest() {
-        // Complex c = new Complex(2, null);
-        // Complex cx = new Complex(1, c);
-        // Complex cx1 = new Complex(0, cx);
+        Complex c = new Complex(2, null);
+        Complex cx = new Complex(1, c);
+        Complex cx1 = new Complex(0, cx);
         Complex cx2 = new Complex(0, new Complex(1, new Complex(2, null)));
-        // Complex cx3 = new Complex(0, null);
+        Complex cx3 = new Complex(0, null);
     }
 
     public static void main(String... args) {
+        // simpleObjectTest();
+
         // for(int i = 0; i < 10; ++i) {
         //     deepObjectTest();
         // }
@@ -84,7 +90,5 @@ public class Main {
         // C[][][][] multiArray = new C[20][10][30][40];
         // C[]
         // C[] justArray = new C[20];
-
-        while(true) {}
     }
 }

@@ -1,42 +1,31 @@
 package agent;
 
-import java.io.IOException;
-import java.lang.instrument.ClassDefinition;
 import java.lang.instrument.Instrumentation;
-import java.lang.instrument.UnmodifiableClassException;
-import java.util.HashMap;
-import java.util.Map;
 
-import javassist.CannotCompileException;
-import javassist.ClassPool;
-import javassist.CtClass;
-
+/**
+ * Java Agent which is loaded before Main class and creates a Transformer
+ */
 public class MemoryAllocationAgent {
     private static Instrumentation instr;
 
+    /**
+     * Stores the instrumentation instance and creates a transformer
+     * This method is called from the VM before main
+     * 
+     * @param args arguments passed to the agent
+     * @param inst instrumentation instance created by the agent
+     */
     public static void premain(String args, Instrumentation inst) {
         instr = inst;
-        ClassPool cp = ClassPool.getDefault();
-
-        HashMap<String, Class<?>> injectedClasses = new HashMap<>();
-        injectedClasses.put("inject.AllocationDetector", inject.AllocationDetector.class);
-        injectedClasses.put("inject.AllocationCounter", inject.AllocationCounter.class);
-        // injectedClasses.put("inject.ByteConverter", inject.ByteConverter.class);
-
-        try {
-            for(Map.Entry<String, Class<?>> clazz : injectedClasses.entrySet()) {
-                CtClass cc = cp.getOrNull(clazz.getKey());
-                instr.redefineClasses(new ClassDefinition(clazz.getValue(), cc.toBytecode()));
-                cc.detach();
-            }
-            
-        } catch (ClassNotFoundException | UnmodifiableClassException | IOException | CannotCompileException e) {
-            e.printStackTrace();
-        }
-
-        instr.addTransformer(new Transformer());
+        instr.addTransformer(new MemoryAllocationDetectionTransformer());
     }
 
+    /**
+     * Returns the size of the object
+     * 
+     * @param obj
+     * @return size of the object
+     */
     public static long getObjectSize(Object obj) {
         return instr.getObjectSize(obj);
     }

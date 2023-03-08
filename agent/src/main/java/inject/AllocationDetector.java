@@ -4,6 +4,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.core.config.Configurator;
+import org.apache.logging.log4j.LogManager;
+
 import agent.MemoryAllocationAgent;
 
 public class AllocationDetector {
@@ -31,45 +35,47 @@ public class AllocationDetector {
         primitiveArrayIndex.put("[D", 7);
     };
 
-    private final static List<String> strings = new ArrayList<>();
     private final static HashMap<String, List<Object>> objectMap = new HashMap<>();
-
     private final static DuplicateFinder finder = new DuplicateFinder(objectMap, equals);
+
+    private final static Logger logger = LogManager.getRootLogger();
+
+    public static void configure() {
+        Configurator.initialize(null, "log4j2.xml");
+    }
+
+    public static void findDuplicates() {
+        finder.findDuplicates();
+    }
 
     public static void registerObject(Object obj) {
         StackTraceElement trace = Thread.currentThread().getStackTrace()[2];
-        System.out.println("Object allocated at: " + trace.getFileName() + ":" + trace.getLineNumber());
-        System.out.println("Object size: " + MemoryAllocationAgent.getObjectSize(obj));
-        System.out.println("Object type: " + obj.getClass().getSimpleName());
+
+        String allocatedAt = trace.getFileName() + ":" + trace.getLineNumber();
+
+        logger.trace("Object allocated at: " + allocatedAt);
+        logger.trace("Object size: " + MemoryAllocationAgent.getObjectSize(obj));
+        logger.trace("Object type: " + obj.getClass().getSimpleName());
 
         AllocationCounter.addCounts(trace, MemoryAllocationAgent.getObjectSize(obj));
 
-        if(obj instanceof String str) {
-            strings.add(str);
-        } else {
-            String className = obj.getClass().getName();
-            if(!objectMap.containsKey(className)) {
-                objectMap.put(className, new ArrayList<>());
-            }
-
-            synchronized(objectMap) {
-                List<Object> list = objectMap.get(className);
-                list.add(obj);
-            }
-
-            if(!finder.isAlive()) {
-                finder.start();
-            }
+        String className = obj.getClass().getName();
+        if(!objectMap.containsKey(className)) {
+            objectMap.put(className, new ArrayList<>());
         }
+
+        List<Object> list = objectMap.get(className);
+        list.add(obj);
     }
 
     public static void registerPrimitiveArray(Object array) {
         StackTraceElement trace = Thread.currentThread().getStackTrace()[2];
         long objectSize = MemoryAllocationAgent.getObjectSize(array);
+        String allocatedAt = trace.getFileName() + ":" + trace.getLineNumber();
 
-        System.out.println("Primitive array allocated at: " + trace.getFileName() + ":" + trace.getLineNumber());
-        System.out.println("Array size: " + objectSize);
-        System.out.println("Array type: " + array.getClass().getSimpleName());
+        logger.trace("Primitive array allocated at: " + allocatedAt);
+        logger.trace("Array size: " + objectSize);
+        logger.trace("Array type: " + array.getClass().getSimpleName());
 
         int index = primitiveArrayIndex.get(array.getClass().getName());
 
@@ -83,10 +89,11 @@ public class AllocationDetector {
     public static void registerObjectArray(Object[] array) {
         StackTraceElement trace = Thread.currentThread().getStackTrace()[2];
         long objectSize = MemoryAllocationAgent.getObjectSize(array);
+        String allocatedAt = trace.getFileName() + ":" + trace.getLineNumber();
 
-        System.out.println("Object array allocated at: " + trace.getFileName() + ":" + trace.getLineNumber());
-        System.out.println("Array size: " + objectSize);
-        System.out.println("Array type: " + array.getClass().getSimpleName());
+        logger.trace("Object array allocated at: " + allocatedAt);
+        logger.trace("Array size: " + objectSize);
+        logger.trace("Array type: " + array.getClass().getSimpleName());
 
         AllocationCounter.addCounts(trace, objectSize);
     }
@@ -108,10 +115,11 @@ public class AllocationDetector {
     public static void registerMultiArray(Object[] array) {
         StackTraceElement trace = Thread.currentThread().getStackTrace()[2];
         long objectSize = getMultidimensionalArraySize(array);
+        String allocatedAt = trace.getFileName() + ":" + trace.getLineNumber();
 
-        System.out.println("Multi array allocated at: " + trace.getFileName() + ":" + trace.getLineNumber());
-        System.out.println("Array size: " + objectSize);
-        System.out.println("Array type: " + array.getClass().getSimpleName());
+        logger.trace("Multi array allocated at: " + allocatedAt);
+        logger.trace("Array size: " + objectSize);
+        logger.trace("Array type: " + array.getClass().getSimpleName());
 
         AllocationCounter.addCounts(trace, objectSize);
     }

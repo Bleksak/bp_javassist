@@ -6,4 +6,3 @@ inject\AllocationDetector.class
 agent\Transformer.class
 inject\DuplicateDeepEquals.class
 inject\DuplicateShallowEquals.class
-inject\ByteConverter.class

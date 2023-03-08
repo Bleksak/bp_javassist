@@ -19,13 +19,19 @@ import javassist.bytecode.BadBytecode;
 import javassist.bytecode.CodeAttribute;
 import javassist.bytecode.CodeIterator;
 import javassist.bytecode.ConstPool;
-import javassist.bytecode.InstructionPrinter;
 import javassist.bytecode.MethodInfo;
 import javassist.bytecode.Opcode;
 import javassist.bytecode.CodeIterator.Gap;
 
-public class Transformer implements ClassFileTransformer {
-
+/**
+ * MemoryAllocationDetectionTransformer transforms the bytecode of all NEW, NEWARRAY, ANEWARRAY and MULTIANEWARRAY instructions
+ * and calls an object registration method after allocating and initializing the object.
+ */
+public class MemoryAllocationDetectionTransformer implements ClassFileTransformer {
+    /**
+     * Transforms the bytes of the loaded class
+     * This method is called by the Java Agent
+     */
     @Override
     public byte[] transform(ClassLoader loader, String className,
             Class<?> classBeingRedefined,
@@ -34,7 +40,9 @@ public class Transformer implements ClassFileTransformer {
             throws IllegalClassFormatException {
         className = className.replace("/", ".");
 
-        String[] filter = new String[] {};
+        String[] filter = new String[] {
+            ""
+        };
 
         for (String s : filter) {
             if (s.equals(className)) {
@@ -42,8 +50,18 @@ public class Transformer implements ClassFileTransformer {
             }
         }
 
-        if(className.startsWith("java.") || className.startsWith("sun.") || className.startsWith("jdk.") || className.startsWith("inject.")) {
-            return null;
+        String[] prefixFilter = new String[] {
+            "java.",
+            "sun.",
+            "jdk.",
+            "inject.",
+            "org.apache.logging.log4j",
+        };
+
+        for (String prefix : prefixFilter) {
+            if (className.startsWith(prefix)) {
+                return null;
+            }
         }
 
         try {
@@ -72,67 +90,31 @@ public class Transformer implements ClassFileTransformer {
             byte[] code = cc.toBytecode();
             cc.detach();
             return code;
-        } catch (IOException e) {
-            e.printStackTrace();
         }
-         catch (NoClassDefFoundError e) {
-            e.printStackTrace();
-        } catch (BadBytecode e) {
-            e.printStackTrace();
-        } catch (CannotCompileException e) {
-            e.printStackTrace();
-        } catch (URISyntaxException e) {
-            e.printStackTrace();
-        }
+
+        catch (IOException e) {}
+        catch (NoClassDefFoundError e) {}
+        catch (BadBytecode e) {}
+        catch (CannotCompileException e) {} 
+        catch (URISyntaxException e) {}
+
         return classfileBuffer;
     }
 
     private void opcodeNew(CodeIterator iterator, int pos, ConstPool constPool, CodeAttribute codeAttribute, Deque<String> stack) throws BadBytecode {
-        // int index = iterator.u16bitAt(pos + 1);
-        // String cname = constPool.getClassInfo(index);
-        // System.out.println("new " + cname + "();");
-
-        // int classInfo = constPool.addClassInfo("inject.AllocationDetector");
-        // int registerMethodIndex = constPool.addMethodrefInfo(classInfo, "registerObject", "(Ljava/lang/Object;)V");
-
         int indexbyte1 = iterator.byteAt(pos + 1);
         int indexbyte2 = iterator.byteAt(pos + 2);
 
         int constPoolIndex = indexbyte1 << 8 | indexbyte2;
-
         String className = constPool.getClassInfo(constPoolIndex);
 
-        System.out.println("Found NEW for: " + className);
         stack.push(className);
-                
-        // now we start searching for invokespecial (3 bytes)
-        // because constructor can take many arguments
         // invokespecial should always be present, otherwise the object is unitialized
-        // TODO: invokespecial is used to call <init>, private methods, and methods that are final, need to find a way to pair it correctly
 
-        // int currentOpcode;
-        // boolean found = false;
-        // int pos;
-
-        // do {
-        //     pos = iterator.next();
-        //     currentOpcode = iterator.byteAt(pos);
-        //     if(currentOpcode == Opcode.INVOKESPECIAL) {
-        //         found = true;
-        //     }
-        // } while(currentOpcode != Opcode.INVOKESPECIAL && iterator.hasNext());
-
-        // if(found) {
         Gap dupOpcodePos = iterator.insertGapAt(pos + 3, 1, true);
         iterator.writeByte(Opcode.DUP, dupOpcodePos.position);
-        //     iterator.writeByte(Opcode.INVOKESTATIC, dupOpcodePos.position + 1);
-        //     iterator.write16bit(registerMethodIndex, dupOpcodePos.position + 2);
         codeAttribute.setMaxStack(codeAttribute.getMaxStack() + 1);
         codeAttribute.setMaxLocals(codeAttribute.getMaxLocals() + 1);
-        // } else {
-        //     System.out.println("cannot find");
-        // }
-
     }
 
     private void opcodeNewArray(CodeIterator iterator, int pos, ConstPool constPool, CodeAttribute codeAttribute) throws BadBytecode {
@@ -163,9 +145,6 @@ public class Transformer implements ClassFileTransformer {
         int classInfo = constPool.addClassInfo("inject.AllocationDetector");
         int registerMethodIndex = constPool.addMethodrefInfo(classInfo, "registerMultiArray", "([Ljava/lang/Object;)V");
 
-        // int dimensions = iterator.byteAt(pos + 3);
-        // System.out.println(dimensions);
-
         Gap dupOpcodePos = iterator.insertGapAt(pos + 4, 4, true);
         iterator.writeByte(Opcode.DUP, dupOpcodePos.position);
         iterator.writeByte(Opcode.INVOKESTATIC, dupOpcodePos.position + 1);
@@ -176,6 +155,7 @@ public class Transformer implements ClassFileTransformer {
 
     private void newInsertInvoke(CodeIterator iterator, int pos, ConstPool constPool, CodeAttribute codeAttribute, Deque<String> stack) throws BadBytecode {
         String top = stack.peek();
+
         int indexbyte1 = iterator.byteAt(pos + 1);
         int indexbyte2 = iterator.byteAt(pos + 2);
 
@@ -191,17 +171,17 @@ public class Transformer implements ClassFileTransformer {
         int registerMethodIndex = constPool.addMethodrefInfo(classInfo, "registerObject", "(Ljava/lang/Object;)V");
 
         Gap dupOpcodePos = iterator.insertGapAt(pos + 3, 3, true);
-        // iterator.writeByte(Opcode.DUP, dupOpcodePos.position);
         iterator.writeByte(Opcode.INVOKESTATIC, dupOpcodePos.position);
         iterator.write16bit(registerMethodIndex, dupOpcodePos.position + 1);
-        // codeAttribute.setMaxStack(codeAttribute.getMaxStack() + 1);
-        // codeAttribute.setMaxLocals(codeAttribute.getMaxLocals() + 1);
     }
 
     private void updateMain(CtMethod main) throws CannotCompileException {
         ConstPool constPool = main.getMethodInfo().getConstPool();
+        constPool.addClassInfo("inject.AllocationDetector");
         constPool.addClassInfo("inject.AllocationCounter");
-        main.insertAfter("inject.AllocationCounter.printInfo();");
+
+        main.insertBefore("inject.AllocationDetector.configure();");
+        main.insertAfter("inject.AllocationCounter.logInfo(); inject.AllocationDetector.findDuplicates();");
     }
 
     private void findNewKeyword(CtBehavior method) throws BadBytecode {
@@ -211,20 +191,20 @@ public class Transformer implements ClassFileTransformer {
         CodeIterator iterator = codeAttribute.iterator();
         ConstPool constPool = method.getMethodInfo().getConstPool();
 
-        Deque<String> stack = new ArrayDeque<>();
+        Deque<String> newKeywordStack = new ArrayDeque<>();
 
         while(iterator.hasNext()) {
             int pos = iterator.next();
             int op = iterator.byteAt(pos);
 
             if(op == Opcode.NEW) {
-                opcodeNew(iterator, pos, constPool, codeAttribute, stack);
+                opcodeNew(iterator, pos, constPool, codeAttribute, newKeywordStack);
             }
 
             if(op == Opcode.INVOKESPECIAL) {
-                if(!stack.isEmpty()) {
+                if(!newKeywordStack.isEmpty()) {
                     // pop from stack if match and call register
-                    newInsertInvoke(iterator, pos, constPool, codeAttribute, stack);
+                    newInsertInvoke(iterator, pos, constPool, codeAttribute, newKeywordStack);
                 }
             }
 
@@ -240,8 +220,5 @@ public class Transformer implements ClassFileTransformer {
                 opcodeMultiANewArray(iterator, pos, constPool, codeAttribute);
             }
         }
-
-        // InstructionPrinter printer = new InstructionPrinter(System.out);
-        // printer.print((CtMethod)method);
     }
 }
