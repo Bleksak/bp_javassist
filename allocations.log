@@ -1,10 +1,48 @@
-2023-03-08 01:19:15,908 TRACE  [main] Object allocated at: Main.java:44
-2023-03-08 01:19:15,911 TRACE  [main] Object size: 16
-2023-03-08 01:19:15,911 TRACE  [main] Object type: OptionalWillFail
-2023-03-08 01:19:15,911 TRACE  [main] Object allocated at: Main.java:45
-2023-03-08 01:19:15,911 TRACE  [main] Object size: 16
-2023-03-08 01:19:15,911 TRACE  [main] Object type: OptionalWillFail
-2023-03-08 01:19:15,913 INFO  [main] Main.java:44 allocated 16 bytes
-2023-03-08 01:19:15,913 INFO  [main] Main.java:45 allocated 16 bytes
-2023-03-08 01:19:15,913 INFO  [main] Main.java:Main:optionalTest allocated 32 bytes
-2023-03-08 01:19:15,914 INFO  [main] Main.java:Main allocated 32 bytes
+2023-03-14 19:00:28,391 TRACE  [main] Primitive array allocated at: Main.java:74
+2023-03-14 19:00:28,395 TRACE  [main] Array size: 40
+2023-03-14 19:00:28,395 TRACE  [main] Array type: int[]
+2023-03-14 19:00:28,396 TRACE  [main] Primitive array allocated at: Main.java:75
+2023-03-14 19:00:28,396 TRACE  [main] Array size: 40
+2023-03-14 19:00:28,396 TRACE  [main] Array type: int[]
+2023-03-14 19:00:28,397 TRACE  [main] Object array allocated at: Main.java:76
+2023-03-14 19:00:28,397 TRACE  [main] Array size: 24
+2023-03-14 19:00:28,397 TRACE  [main] Array type: int[][]
+2023-03-14 19:00:28,397 TRACE  [main] Primitive array allocated at: Main.java:76
+2023-03-14 19:00:28,397 TRACE  [main] Array size: 32
+2023-03-14 19:00:28,397 TRACE  [main] Array type: int[]
+2023-03-14 19:00:28,397 TRACE  [main] Primitive array allocated at: Main.java:76
+2023-03-14 19:00:28,397 TRACE  [main] Array size: 32
+2023-03-14 19:00:28,397 TRACE  [main] Array type: int[]
+2023-03-14 19:00:28,397 TRACE  [main] Object array allocated at: Main.java:81
+2023-03-14 19:00:28,397 TRACE  [main] Array size: 24
+2023-03-14 19:00:28,397 TRACE  [main] Array type: int[][][]
+2023-03-14 19:00:28,397 TRACE  [main] Object array allocated at: Main.java:81
+2023-03-14 19:00:28,397 TRACE  [main] Array size: 24
+2023-03-14 19:00:28,397 TRACE  [main] Array type: int[][]
+2023-03-14 19:00:28,397 TRACE  [main] Primitive array allocated at: Main.java:81
+2023-03-14 19:00:28,397 TRACE  [main] Array size: 32
+2023-03-14 19:00:28,397 TRACE  [main] Array type: int[]
+2023-03-14 19:00:28,397 TRACE  [main] Primitive array allocated at: Main.java:81
+2023-03-14 19:00:28,397 TRACE  [main] Array size: 32
+2023-03-14 19:00:28,397 TRACE  [main] Array type: int[]
+2023-03-14 19:00:28,397 TRACE  [main] Object array allocated at: Main.java:81
+2023-03-14 19:00:28,397 TRACE  [main] Array size: 32
+2023-03-14 19:00:28,397 TRACE  [main] Array type: int[][]
+2023-03-14 19:00:28,397 TRACE  [main] Primitive array allocated at: Main.java:81
+2023-03-14 19:00:28,397 TRACE  [main] Array size: 32
+2023-03-14 19:00:28,397 TRACE  [main] Array type: int[]
+2023-03-14 19:00:28,398 TRACE  [main] Primitive array allocated at: Main.java:81
+2023-03-14 19:00:28,398 TRACE  [main] Array size: 32
+2023-03-14 19:00:28,398 TRACE  [main] Array type: int[]
+2023-03-14 19:00:28,398 TRACE  [main] Primitive array allocated at: Main.java:81
+2023-03-14 19:00:28,398 TRACE  [main] Array size: 32
+2023-03-14 19:00:28,398 TRACE  [main] Array type: int[]
+2023-03-14 19:00:28,401 INFO  [main] Main.java:81 allocated 240 bytes
+2023-03-14 19:00:28,402 INFO  [main] Main.java:76 allocated 88 bytes
+2023-03-14 19:00:28,402 INFO  [main] Main.java:74 allocated 40 bytes
+2023-03-14 19:00:28,402 INFO  [main] Main.java:75 allocated 40 bytes
+2023-03-14 19:00:28,402 INFO  [main] Main.java:Main:main allocated 408 bytes
+2023-03-14 19:00:28,402 INFO  [main] Main.java:Main allocated 408 bytes
+2023-03-14 19:00:28,404 INFO  [main] Found 1 duplicates of object: [I
+2023-03-14 19:00:28,404 INFO  [main] Found 1 duplicates of object: [I
+2023-03-14 19:00:28,404 INFO  [main] Found 1 duplicates of object: [I

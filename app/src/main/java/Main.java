@@ -71,6 +71,25 @@ public class Main {
     }
 
     public static void main(String... args) {
+        int[] arr1 = new int[]{1,2,3,4,5};
+        int[] arr2 = new int[]{1,2,3,4,5};
+        int[][] k = new int[][] {
+            {1, 3, 4},
+            {2, 5, 8}
+        };
+
+        int[][][] r = new int[][][] {
+            {
+                {1, 3, 4},
+                {2, 2, 1},
+            },
+            {
+                {2, 5, 8},
+                {1, 3, 1},
+                {2, 3, 3},
+            }
+        };
+
         // simpleObjectTest();
 
         // for(int i = 0; i < 10; ++i) {
@@ -78,7 +97,7 @@ public class Main {
         // }
 
         // cyclicTest();
-        optionalTest();
+        // optionalTest();
 
         // for(int i = 0; i < 10; ++i) {
         // }

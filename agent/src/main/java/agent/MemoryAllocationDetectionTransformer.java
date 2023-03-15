@@ -1,5 +1,6 @@
 package agent;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.lang.instrument.ClassFileTransformer;
 import java.lang.instrument.IllegalClassFormatException;
@@ -40,16 +41,7 @@ public class MemoryAllocationDetectionTransformer implements ClassFileTransforme
             throws IllegalClassFormatException {
         className = className.replace("/", ".");
 
-        String[] filter = new String[] {
-            ""
-        };
-
-        for (String s : filter) {
-            if (s.equals(className)) {
-                return null;
-            }
-        }
-
+        // filter out all unwanted packages
         String[] prefixFilter = new String[] {
             "java.",
             "sun.",
@@ -66,7 +58,7 @@ public class MemoryAllocationDetectionTransformer implements ClassFileTransforme
 
         try {
             ClassPool pool = ClassPool.getDefault();
-            CtClass cc = pool.makeClass(new java.io.ByteArrayInputStream(classfileBuffer));
+            CtClass cc = pool.makeClass(new ByteArrayInputStream(classfileBuffer));
 
             CtMethod[] methods = cc.getDeclaredMethods();
             CtConstructor[] ctors = cc.getDeclaredConstructors();
@@ -80,6 +72,7 @@ public class MemoryAllocationDetectionTransformer implements ClassFileTransforme
                 if(className.equals(mainClass) && method.getName().equals("main")) {
                     updateMain(method);
                 }
+
                 findNewKeyword(method);
             }
 
@@ -102,6 +95,7 @@ public class MemoryAllocationDetectionTransformer implements ClassFileTransforme
     }
 
     private void opcodeNew(CodeIterator iterator, int pos, ConstPool constPool, CodeAttribute codeAttribute, Deque<String> stack) throws BadBytecode {
+        // find class name of the allocated object
         int indexbyte1 = iterator.byteAt(pos + 1);
         int indexbyte2 = iterator.byteAt(pos + 2);
 
@@ -111,8 +105,11 @@ public class MemoryAllocationDetectionTransformer implements ClassFileTransforme
         stack.push(className);
         // invokespecial should always be present, otherwise the object is unitialized
 
+        // create space for the dup opcode
         Gap dupOpcodePos = iterator.insertGapAt(pos + 3, 1, true);
         iterator.writeByte(Opcode.DUP, dupOpcodePos.position);
+        // write the dup opcode
+        // the new bytecode looks like: "new", "dup", ....
         codeAttribute.setMaxStack(codeAttribute.getMaxStack() + 1);
         codeAttribute.setMaxLocals(codeAttribute.getMaxLocals() + 1);
     }
