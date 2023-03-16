@@ -15,7 +15,7 @@ import agent.MemoryAllocationAgent;
  * It is responsible for adding objects to the collection.
  */
 public class AllocationDetector {
-    private final static HashMap<String, List<Object>> objectMap = new HashMap<>();
+    private final static HashMap<String, List<ObjectWithTrace>> objectMap = new HashMap<>();
 
     private final static IDuplicateEquals equals = new DuplicateDeepEquals();
     private final static DuplicateFinder finder = new DuplicateFinder(objectMap, equals);
@@ -36,14 +36,14 @@ public class AllocationDetector {
         finder.findDuplicates();
     }
 
-    private static void addObject(Object obj) {
+    private static void addObject(Object obj, StackTraceElement stackTrace) {
         String className = obj.getClass().getName();
         if(!objectMap.containsKey(className)) {
             objectMap.put(className, new ArrayList<>());
         }
 
-        List<Object> list = objectMap.get(className);
-        list.add(obj);
+        List<ObjectWithTrace> list = objectMap.get(className);
+        list.add(new ObjectWithTrace(obj, stackTrace));
     }
 
     /**
@@ -59,7 +59,7 @@ public class AllocationDetector {
         logger.trace("Object type: " + obj.getClass().getSimpleName());
 
         AllocationCounter.addCounts(trace, MemoryAllocationAgent.getObjectSize(obj));
-        addObject(obj);
+        addObject(obj, trace);
     }
 
     /**
@@ -76,7 +76,7 @@ public class AllocationDetector {
         logger.trace("Array type: " + array.getClass().getSimpleName());
 
         AllocationCounter.addCounts(trace, objectSize);
-        addObject(array);
+        addObject(array, trace);
     }
 
     /**
@@ -93,7 +93,7 @@ public class AllocationDetector {
         logger.trace("Array type: " + array.getClass().getSimpleName());
 
         AllocationCounter.addCounts(trace, objectSize);
-        addObject(array);
+        addObject(array, trace);
     }
 
     private static long getMultidimensionalArraySize(Object array) {
@@ -125,6 +125,6 @@ public class AllocationDetector {
         logger.trace("Array type: " + array.getClass().getSimpleName());
 
         AllocationCounter.addCounts(trace, objectSize);
-        addObject(array);
+        addObject(array, trace);
     }
 }
