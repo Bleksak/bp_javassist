@@ -2,6 +2,8 @@ package agent;
 
 import java.lang.instrument.Instrumentation;
 
+import org.apache.logging.log4j.core.config.Configurator;
+
 /**
  * Java Agent which is loaded before Main class and creates a Transformer
  */
@@ -10,7 +12,8 @@ public class MemoryAllocationAgent {
 
     /**
      * Stores the instrumentation instance and creates a transformer
-     * This method is called from the VM before main
+     * Initializes the log4j logging library
+     * This method is called from the JVM before main
      * 
      * @param args arguments passed to the agent
      * @param inst instrumentation instance created by the agent
@@ -18,6 +21,7 @@ public class MemoryAllocationAgent {
     public static void premain(String args, Instrumentation inst) {
         instr = inst;
         instr.addTransformer(new MemoryAllocationDetectionTransformer());
+        Configurator.initialize(null, "log4j2.xml");
     }
 
     /**

@@ -1,13 +1,19 @@
 package agent;
 
+import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
+import java.io.FileReader;
 import java.io.IOException;
 import java.lang.instrument.ClassFileTransformer;
 import java.lang.instrument.IllegalClassFormatException;
 import java.net.URISyntaxException;
 import java.security.ProtectionDomain;
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Deque;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.jar.JarFile;
 
 import javassist.CannotCompileException;
@@ -29,6 +35,40 @@ import javassist.bytecode.CodeIterator.Gap;
  * and calls an object registration method after allocating and initializing the object.
  */
 public class MemoryAllocationDetectionTransformer implements ClassFileTransformer {
+
+    private static final List<String> prefixFilter = List.of("java.", "sun.", "jdk.", "inject.", "org.apache.logging.log4j");
+    private static final String configurationFile = "config.txt";
+
+    static {
+        try (BufferedReader br = new BufferedReader(new FileReader(configurationFile))) {
+            String line;
+
+            while ((line = br.readLine()) != null) {
+                prefixFilter.add(line);
+            }
+        } catch (IOException e) {
+            // if the file does not exist, don't do anything
+        }
+    }
+
+    private boolean filter(String className) {
+        for (String prefix : prefixFilter) {
+            if (className.startsWith(prefix)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private String getMainClass(ProtectionDomain protectionDomain) throws IOException, URISyntaxException {
+        String jarFile = protectionDomain.getCodeSource().getLocation().toURI().getPath();
+        JarFile jar = new JarFile(jarFile);
+        String mainClass = jar.getManifest().getMainAttributes().getValue("Main-Class");
+        jar.close();
+        return mainClass;
+    }
+
     /**
      * Transforms the bytes of the loaded class
      * This method is called by the Java Agent
@@ -41,19 +81,8 @@ public class MemoryAllocationDetectionTransformer implements ClassFileTransforme
             throws IllegalClassFormatException {
         className = className.replace("/", ".");
 
-        // filter out all unwanted packages
-        String[] prefixFilter = new String[] {
-            "java.",
-            "sun.",
-            "jdk.",
-            "inject.",
-            "org.apache.logging.log4j",
-        };
-
-        for (String prefix : prefixFilter) {
-            if (className.startsWith(prefix)) {
-                return null;
-            }
+        if(!filter(className)) {
+            return null;
         }
 
         try {
@@ -61,12 +90,9 @@ public class MemoryAllocationDetectionTransformer implements ClassFileTransforme
             CtClass cc = pool.makeClass(new ByteArrayInputStream(classfileBuffer));
 
             CtMethod[] methods = cc.getDeclaredMethods();
-            CtConstructor[] ctors = cc.getDeclaredConstructors();
+            CtConstructor[] constructors = cc.getDeclaredConstructors();
 
-            String jarFile = protectionDomain.getCodeSource().getLocation().toURI().getPath();
-            JarFile jar = new JarFile(jarFile);
-            String mainClass = jar.getManifest().getMainAttributes().getValue("Main-Class");
-            jar.close();
+            String mainClass = getMainClass(protectionDomain);
 
             for(CtMethod method : methods) {
                 if(className.equals(mainClass) && method.getName().equals("main")) {
@@ -76,7 +102,7 @@ public class MemoryAllocationDetectionTransformer implements ClassFileTransforme
                 findNewKeyword(method);
             }
 
-            for(CtConstructor method : ctors) {
+            for(CtConstructor method : constructors) {
                 findNewKeyword(method);
             }
 
@@ -103,7 +129,7 @@ public class MemoryAllocationDetectionTransformer implements ClassFileTransforme
         String className = constPool.getClassInfo(constPoolIndex);
 
         stack.push(className);
-        // invokespecial should always be present, otherwise the object is unitialized
+        // invokespecial should always be present, otherwise the object is unitialized and unusable
 
         // create space for the dup opcode
         Gap dupOpcodePos = iterator.insertGapAt(pos + 3, 1, true);
@@ -177,7 +203,7 @@ public class MemoryAllocationDetectionTransformer implements ClassFileTransforme
         constPool.addClassInfo("inject.AllocationDetector");
         constPool.addClassInfo("inject.AllocationCounter");
 
-        main.insertBefore("inject.AllocationDetector.configure();");
+        // main.insertBefore("inject.AllocationDetector.configure();");
         main.insertAfter("inject.AllocationCounter.logInfo(); inject.AllocationDetector.findDuplicates();");
     }
 

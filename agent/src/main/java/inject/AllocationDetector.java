@@ -25,9 +25,9 @@ public class AllocationDetector {
     /**
      * configures the logger
      */
-    public static void configure() {
-        Configurator.initialize(null, "log4j2.xml");
-    }
+    // public static void configure() {
+    //     Configurator.initialize(null, "log4j2.xml");
+    // }
 
     /**
      * runs the algorithm to find duplicate objects
