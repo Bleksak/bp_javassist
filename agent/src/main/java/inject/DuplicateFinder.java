@@ -1,7 +1,7 @@
 package inject;
 
-import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -12,14 +12,14 @@ import org.apache.logging.log4j.Logger;
 public class DuplicateFinder {
     private final Logger logger = LogManager.getRootLogger();
 
-    private final HashMap<String, List<ObjectWithTrace>> objects;
+    private final Map<String, List<ObjectWithTrace>> objects;
     private final IDuplicateEquals eq;
     
     /**
      * @param objects Collection of all objects allocated on the heap
      * @param eq Equals implementation (shallow or deep)
      */
-    public DuplicateFinder(HashMap<String, List<ObjectWithTrace>> objects, IDuplicateEquals eq) {
+    public DuplicateFinder(Map<String, List<ObjectWithTrace>> objects, IDuplicateEquals eq) {
         this.objects = objects;
         this.eq = eq;
     }
