@@ -1,4 +1,6 @@
 D:\school_dev\BP\bp_javassist\agent\src\main\java\agent\MemoryAllocationDetectionTransformer.java
+D:\school_dev\BP\bp_javassist\agent\src\main\java\inject\ObjectWithTrace.java
+D:\school_dev\BP\bp_javassist\agent\src\main\java\agent\Utils.java
 D:\school_dev\BP\bp_javassist\agent\src\main\java\inject\DuplicateFinder.java
 D:\school_dev\BP\bp_javassist\agent\src\main\java\inject\AllocationDetector.java
 D:\school_dev\BP\bp_javassist\agent\src\main\java\inject\DuplicateShallowEquals.java

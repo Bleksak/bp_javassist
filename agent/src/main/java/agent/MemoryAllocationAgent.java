@@ -20,8 +20,8 @@ public class MemoryAllocationAgent {
      */
     public static void premain(String args, Instrumentation inst) {
         instr = inst;
-        instr.addTransformer(new MemoryAllocationDetectionTransformer());
         Configurator.initialize(null, "log4j2.xml");
+        instr.addTransformer(new MemoryAllocationDetectionTransformer());
     }
 
     /**

@@ -1,8 +1,10 @@
 inject\IDuplicateEquals.class
 inject\DuplicateFinder.class
+inject\ObjectWithTrace.class
 agent\MemoryAllocationAgent.class
 inject\AllocationCounter.class
 inject\AllocationDetector.class
 inject\DuplicateDeepEquals.class
 agent\MemoryAllocationDetectionTransformer.class
+agent\Utils.class
 inject\DuplicateShallowEquals.class

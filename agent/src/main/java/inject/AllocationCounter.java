@@ -15,7 +15,6 @@ public class AllocationCounter {
     /**
      * key = filename:classname:methodname
      */
-    // TODO: we may have to consider using one more item for key, becuase class can have multiple methods with the same name
     private static HashMap<String, Long> methodCounter = new HashMap<>();
 
     /**

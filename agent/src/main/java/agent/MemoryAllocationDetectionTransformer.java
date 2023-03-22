@@ -9,12 +9,8 @@ import java.lang.instrument.IllegalClassFormatException;
 import java.net.URISyntaxException;
 import java.security.ProtectionDomain;
 import java.util.ArrayDeque;
-import java.util.ArrayList;
 import java.util.Deque;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
-import java.util.jar.JarFile;
 
 import javassist.CannotCompileException;
 import javassist.ClassPool;
@@ -36,15 +32,22 @@ import javassist.bytecode.CodeIterator.Gap;
  */
 public class MemoryAllocationDetectionTransformer implements ClassFileTransformer {
 
-    private static final List<String> prefixFilter = List.of("java.", "sun.", "jdk.", "inject.", "org.apache.logging.log4j");
+    private static final List<String> prefixFilter = List.of("java.", "sun.", "jdk.", "inject.", "org.apache.logging.log4j", "agent.");
     private static final String configurationFile = "config.txt";
+
+    private static final String[] arrayRegisterMethods = {"registerPrimitiveArray", "registerObjectArray", "registerMultiArray"};
+    private static final String[] arrayRegisterMethodSignatures = {"(Ljava/lang/Object;)V", "([Ljava/lang/Object;)V", "([Ljava/lang/Object;)V"};
+    private static final int[] arrayAllocationBytecode = {Opcode.NEWARRAY, Opcode.ANEWARRAY, Opcode.MULTIANEWARRAY};
+    private static final int[] bytecodeEffectiveSize = {2, 3, 4};
 
     static {
         try (BufferedReader br = new BufferedReader(new FileReader(configurationFile))) {
             String line;
 
             while ((line = br.readLine()) != null) {
-                prefixFilter.add(line);
+                if(!line.isEmpty()) {
+                    prefixFilter.add(line);
+                }
             }
         } catch (IOException e) {
             // if the file does not exist, don't do anything
@@ -59,14 +62,6 @@ public class MemoryAllocationDetectionTransformer implements ClassFileTransforme
         }
 
         return true;
-    }
-
-    private String getMainClass(ProtectionDomain protectionDomain) throws IOException, URISyntaxException {
-        String jarFile = protectionDomain.getCodeSource().getLocation().toURI().getPath();
-        JarFile jar = new JarFile(jarFile);
-        String mainClass = jar.getManifest().getMainAttributes().getValue("Main-Class");
-        jar.close();
-        return mainClass;
     }
 
     /**
@@ -92,8 +87,7 @@ public class MemoryAllocationDetectionTransformer implements ClassFileTransforme
             CtMethod[] methods = cc.getDeclaredMethods();
             CtConstructor[] constructors = cc.getDeclaredConstructors();
 
-            String mainClass = getMainClass(protectionDomain);
-
+            String mainClass = Utils.getMainClass(protectionDomain);
             for(CtMethod method : methods) {
                 if(className.equals(mainClass) && method.getName().equals("main")) {
                     updateMain(method);
@@ -122,56 +116,16 @@ public class MemoryAllocationDetectionTransformer implements ClassFileTransforme
 
     private void opcodeNew(CodeIterator iterator, int pos, ConstPool constPool, CodeAttribute codeAttribute, Deque<String> stack) throws BadBytecode {
         // find class name of the allocated object
-        int indexbyte1 = iterator.byteAt(pos + 1);
-        int indexbyte2 = iterator.byteAt(pos + 2);
-
-        int constPoolIndex = indexbyte1 << 8 | indexbyte2;
-        String className = constPool.getClassInfo(constPoolIndex);
-
+        String className = Utils.getClassInfo(iterator, pos, constPool);
         stack.push(className);
+
         // invokespecial should always be present, otherwise the object is unitialized and unusable
+        // if invokespecial is not present, this method will cause undefined behavior
 
         // create space for the dup opcode
         Gap dupOpcodePos = iterator.insertGapAt(pos + 3, 1, true);
-        iterator.writeByte(Opcode.DUP, dupOpcodePos.position);
         // write the dup opcode
-        // the new bytecode looks like: "new", "dup", ....
-        codeAttribute.setMaxStack(codeAttribute.getMaxStack() + 1);
-        codeAttribute.setMaxLocals(codeAttribute.getMaxLocals() + 1);
-    }
-
-    private void opcodeNewArray(CodeIterator iterator, int pos, ConstPool constPool, CodeAttribute codeAttribute) throws BadBytecode {
-        int classInfo = constPool.addClassInfo("inject.AllocationDetector");
-        int registerMethodIndex = constPool.addMethodrefInfo(classInfo, "registerPrimitiveArray", "(Ljava/lang/Object;)V");
-
-        Gap dupOpcodePos = iterator.insertGapAt(pos + 2, 4, true);
         iterator.writeByte(Opcode.DUP, dupOpcodePos.position);
-        iterator.writeByte(Opcode.INVOKESTATIC, dupOpcodePos.position + 1);
-        iterator.write16bit(registerMethodIndex, dupOpcodePos.position + 2);
-        codeAttribute.setMaxStack(codeAttribute.getMaxStack() + 1);
-        codeAttribute.setMaxLocals(codeAttribute.getMaxLocals() + 1);
-    }
-
-    private void opcodeANewArray(CodeIterator iterator, int pos, ConstPool constPool, CodeAttribute codeAttribute) throws BadBytecode {
-        int classInfo = constPool.addClassInfo("inject.AllocationDetector");
-        int registerMethodIndex = constPool.addMethodrefInfo(classInfo, "registerObjectArray", "([Ljava/lang/Object;)V");
-
-        Gap dupOpcodePos = iterator.insertGapAt(pos + 3, 4, true);
-        iterator.writeByte(Opcode.DUP, dupOpcodePos.position);
-        iterator.writeByte(Opcode.INVOKESTATIC, dupOpcodePos.position + 1);
-        iterator.write16bit(registerMethodIndex, dupOpcodePos.position + 2);
-        codeAttribute.setMaxStack(codeAttribute.getMaxStack() + 1);
-        codeAttribute.setMaxLocals(codeAttribute.getMaxLocals() + 1);
-    }
-
-    private void opcodeMultiANewArray(CodeIterator iterator, int pos, ConstPool constPool, CodeAttribute codeAttribute) throws BadBytecode {
-        int classInfo = constPool.addClassInfo("inject.AllocationDetector");
-        int registerMethodIndex = constPool.addMethodrefInfo(classInfo, "registerMultiArray", "([Ljava/lang/Object;)V");
-
-        Gap dupOpcodePos = iterator.insertGapAt(pos + 4, 4, true);
-        iterator.writeByte(Opcode.DUP, dupOpcodePos.position);
-        iterator.writeByte(Opcode.INVOKESTATIC, dupOpcodePos.position + 1);
-        iterator.write16bit(registerMethodIndex, dupOpcodePos.position + 2);
         codeAttribute.setMaxStack(codeAttribute.getMaxStack() + 1);
         codeAttribute.setMaxLocals(codeAttribute.getMaxLocals() + 1);
     }
@@ -179,12 +133,8 @@ public class MemoryAllocationDetectionTransformer implements ClassFileTransforme
     private void newInsertInvoke(CodeIterator iterator, int pos, ConstPool constPool, CodeAttribute codeAttribute, Deque<String> stack) throws BadBytecode {
         String top = stack.peek();
 
-        int indexbyte1 = iterator.byteAt(pos + 1);
-        int indexbyte2 = iterator.byteAt(pos + 2);
-
-        int constPoolIndex = indexbyte1 << 8 | indexbyte2;
-        String className = constPool.getMethodrefClassName(constPoolIndex);
-        String methodName = constPool.getMethodrefName(constPoolIndex);
+        String className = Utils.getClassName(iterator, pos, constPool);
+        String methodName = Utils.getMethodName(iterator, pos, constPool);
 
         if(!methodName.contains("<init>")) return;
         if(!className.equals(top)) return;
@@ -207,18 +157,41 @@ public class MemoryAllocationDetectionTransformer implements ClassFileTransforme
         main.insertAfter("inject.AllocationCounter.logInfo(); inject.AllocationDetector.findDuplicates();");
     }
 
-    private void findNewKeyword(CtBehavior method) throws BadBytecode {
+    private void opcodeArrayAllocation(CodeIterator iterator, int pos, ConstPool constPool, CodeAttribute codeAttribute, int typeIndex) throws BadBytecode {
+        int classInfo = constPool.addClassInfo("inject.AllocationDetector");
 
+        String registerMethodName = arrayRegisterMethods[typeIndex];
+        String registerMethodSignature = arrayRegisterMethodSignatures[typeIndex];
+        
+        int registerMethodConstPoolIndex = constPool.addMethodrefInfo(classInfo, registerMethodName, registerMethodSignature);
+        int effectiveSize = bytecodeEffectiveSize[typeIndex];
+
+        Gap dupOpcodePos = iterator.insertGapAt(pos + effectiveSize, 4, true);
+        iterator.writeByte(Opcode.DUP, dupOpcodePos.position);
+        iterator.writeByte(Opcode.INVOKESTATIC, dupOpcodePos.position + 1);
+        iterator.write16bit(registerMethodConstPoolIndex, dupOpcodePos.position + 2);
+        codeAttribute.setMaxStack(codeAttribute.getMaxStack() + 1);
+        codeAttribute.setMaxLocals(codeAttribute.getMaxLocals() + 1);
+    }
+
+    private void findNewKeyword(CtBehavior method) throws BadBytecode {
         MethodInfo methodInfo = method.getMethodInfo();
+        ConstPool constPool = methodInfo.getConstPool();
         CodeAttribute codeAttribute = methodInfo.getCodeAttribute();
         CodeIterator iterator = codeAttribute.iterator();
-        ConstPool constPool = method.getMethodInfo().getConstPool();
 
         Deque<String> newKeywordStack = new ArrayDeque<>();
 
         while(iterator.hasNext()) {
             int pos = iterator.next();
             int op = iterator.byteAt(pos);
+
+            for(int i = 0; i < arrayAllocationBytecode.length; ++i) {
+                if(arrayAllocationBytecode[i] == op) {
+                    opcodeArrayAllocation(iterator, pos, constPool, codeAttribute, i);
+                    break;
+                }
+            }
 
             if(op == Opcode.NEW) {
                 opcodeNew(iterator, pos, constPool, codeAttribute, newKeywordStack);
@@ -229,18 +202,6 @@ public class MemoryAllocationDetectionTransformer implements ClassFileTransforme
                     // pop from stack if match and call register
                     newInsertInvoke(iterator, pos, constPool, codeAttribute, newKeywordStack);
                 }
-            }
-
-            if(op == Opcode.NEWARRAY) {
-                opcodeNewArray(iterator, pos, constPool, codeAttribute);
-            }
-
-            if(op == Opcode.ANEWARRAY) {
-                opcodeANewArray(iterator, pos, constPool, codeAttribute);
-            }
-
-            if(op == Opcode.MULTIANEWARRAY) {
-                opcodeMultiANewArray(iterator, pos, constPool, codeAttribute);
             }
         }
     }

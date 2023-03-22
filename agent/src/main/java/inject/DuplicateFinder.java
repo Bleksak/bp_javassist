@@ -38,8 +38,11 @@ public class DuplicateFinder {
         int duplicates = 0;
 
         for(int i = 0; i < arr.size(); ++i) {
-            Object o = arr.get(i).object;
+            ObjectWithTrace objectWithTrace = arr.get(i);
 
+            if(objectWithTrace == null) continue;
+
+            Object o = objectWithTrace.object;
             if(o == null) continue;
             if(o == obj) continue; // it's this exact object, don't count it
             
@@ -58,6 +61,7 @@ public class DuplicateFinder {
     public void findDuplicates() {
         for(List<ObjectWithTrace> list : objects.values()) {
             for(ObjectWithTrace o : list) {
+                if(o == null) continue;
                 if(o.object == null) continue;
                 int duplicates = countDuplicates(o.object);
 
