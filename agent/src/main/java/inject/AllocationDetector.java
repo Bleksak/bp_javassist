@@ -95,20 +95,6 @@ public class AllocationDetector {
         addObject(array, trace);
     }
 
-    private static long getMultidimensionalArraySize(Object array) {
-        // recursively find the size of multi dimensional array
-        long objectSize = MemoryAllocationAgent.getObjectSize(array);
-        int length = java.lang.reflect.Array.getLength(array);
-
-        for (int i = 0; i < length; i++) {
-            Object element = java.lang.reflect.Array.get(array, i);
-            if (element != null && element.getClass().isArray()) {
-                objectSize += getMultidimensionalArraySize(element);
-            }
-        }
-
-        return objectSize;
-    }
 
     /**
      * adds an multi dimensional array to a collection of allocated objects
@@ -116,7 +102,7 @@ public class AllocationDetector {
      */
     public static void registerMultiArray(Object[] array) {
         StackTraceElement trace = Thread.currentThread().getStackTrace()[2];
-        long objectSize = getMultidimensionalArraySize(array);
+        long objectSize = MemoryAllocationAgent.getMultidimensionalArraySize(array);
         String allocatedAt = trace.getFileName() + ":" + trace.getLineNumber();
 
         logger.trace("Multi array allocated at: " + allocatedAt);

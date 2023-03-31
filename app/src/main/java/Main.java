@@ -27,13 +27,13 @@ class Complex {
     }
 }
 
-class OptionalWillFail {
+class OptionalTest {
     Optional<Integer> test;
-    OptionalWillFail() {
+    OptionalTest() {
         test = Optional.empty();
     }
 
-    OptionalWillFail(Integer a) {
+    OptionalTest(Integer a) {
         test = Optional.of(a);
     }
 }
@@ -41,8 +41,8 @@ class OptionalWillFail {
 public class Main {
 
     public static void optionalTest() {
-        OptionalWillFail owf1 = new OptionalWillFail(12);
-        OptionalWillFail owf2 = new OptionalWillFail(13);
+        OptionalTest owf1 = new OptionalTest(12);
+        OptionalTest owf2 = new OptionalTest(13);
     }
 
     public static void cyclicTest() {

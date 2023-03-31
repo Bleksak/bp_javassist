@@ -33,4 +33,23 @@ public class MemoryAllocationAgent {
     public static long getObjectSize(Object obj) {
         return instr.getObjectSize(obj);
     }
+
+    /**
+     * Recursively calculates multi dimensional array size in bytes
+     * @param array multi dimensional array
+     * @return array size in bytes
+     */
+    public static long getMultidimensionalArraySize(Object array) {
+        long arraySize = getObjectSize(array);
+        int length = java.lang.reflect.Array.getLength(array);
+
+        for (int i = 0; i < length; i++) {
+            Object element = java.lang.reflect.Array.get(array, i);
+            if (element != null && element.getClass().isArray()) {
+                arraySize += getMultidimensionalArraySize(element);
+            }
+        }
+
+        return arraySize;
+    }
 }
