@@ -3,6 +3,7 @@ package inject;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
@@ -14,7 +15,7 @@ import agent.MemoryAllocationAgent;
  * It is responsible for adding objects to the collection.
  */
 public class AllocationDetector {
-    private final static HashMap<String, List<ObjectWithTrace>> objectMap = new HashMap<>();
+    private final static Map<String, List<ObjectWithTrace>> objectMap = new HashMap<>();
 
     private final static IDuplicateEquals equals = new DuplicateDeepEquals();
     private final static DuplicateFinder finder = new DuplicateFinder(objectMap, equals);

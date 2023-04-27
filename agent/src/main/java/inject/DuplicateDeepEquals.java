@@ -3,6 +3,31 @@ package inject;
 import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.Objects;
+
+class ObjectPair {
+
+    private final Object a, b;
+
+    public ObjectPair(Object a, Object b) {
+        this.a = a;
+        this.b = b;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(a, b);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if(obj instanceof ObjectPair o) {
+            return (o.a == a && o.b == b) || (o.b == a && o.a == b);
+        }
+
+        return false;
+    }
+}
 
 public class DuplicateDeepEquals implements IDuplicateEquals {
     private static final Class<?>[] primitiveList = new Class[] { char.class, byte.class, short.class, int.class, long.class, boolean.class, 
@@ -10,31 +35,30 @@ public class DuplicateDeepEquals implements IDuplicateEquals {
 
 
     public static boolean comparePrimitiveArrays(Object array1, Object array2) {
-        Class<?> componentType1 = array1.getClass().getComponentType();
+        Class<?> componentType = array1.getClass().getComponentType();
 
-        if (componentType1 == int.class) {
+        if (componentType == int.class) {
             return Arrays.equals((int[]) array1, (int[]) array2);
-        } else if (componentType1 == byte.class) {
+        } else if (componentType == byte.class) {
             return Arrays.equals((byte[]) array1, (byte[]) array2);
-        } else if (componentType1 == short.class) {
+        } else if (componentType == short.class) {
             return Arrays.equals((short[]) array1, (short[]) array2);
-        } else if (componentType1 == long.class) {
+        } else if (componentType == long.class) {
             return Arrays.equals((long[]) array1, (long[]) array2);
-        } else if (componentType1 == float.class) {
+        } else if (componentType == float.class) {
             return Arrays.equals((float[]) array1, (float[]) array2);
-        } else if (componentType1 == double.class) {
+        } else if (componentType == double.class) {
             return Arrays.equals((double[]) array1, (double[]) array2);
-        } else if (componentType1 == boolean.class) {
+        } else if (componentType == boolean.class) {
             return Arrays.equals((boolean[]) array1, (boolean[]) array2);
-        } else if (componentType1 == char.class) {
+        } else if (componentType == char.class) {
             return Arrays.equals((char[]) array1, (char[]) array2);
         }
 
         return false;
     }
 
-    private boolean eqWithCycles(Object a, Object b, HashSet<Integer> visited) {
-        // first check if objects are null
+    private boolean eqWithCycles(Object a, Object b, HashSet<ObjectPair> visited) {
 
         if(a == b) {
             return true;
@@ -44,20 +68,6 @@ public class DuplicateDeepEquals implements IDuplicateEquals {
             return false;
         }
 
-        int aCode = System.identityHashCode(a);
-        int bCode = System.identityHashCode(b);
-
-        if(visited.contains(aCode)) {
-            return true;
-        }
-
-        if(visited.contains(aCode) || visited.contains(bCode)) {
-            return false;
-        }
-
-        visited.add(aCode);
-        visited.add(bCode);
-
         // we need to check if types of a and b are equal
         // if not, return false
 
@@ -65,6 +75,13 @@ public class DuplicateDeepEquals implements IDuplicateEquals {
         Class<?> bClass = b.getClass();
 
         if(aClass != bClass) return false;
+
+        // if a.equals(b) then objects are equal
+        // however, if !a.equals(b), they are not "unequal", because objects don't have to override equals method
+
+        if(a.equals(b)) {
+            return true;
+        }
 
         // then we need to check, if a.equals(b) will return a definitive answer
         // this only happens with types that represent primitive types (Byte, Short, Integer, Long, Boolean, Character)
@@ -76,12 +93,13 @@ public class DuplicateDeepEquals implements IDuplicateEquals {
             }
         }
 
-        // if a.equals(b) then objects are equal
-        // however, if !a.equals(b), they are not "unequal", because objects don't have to override equals method
+        ObjectPair pair = new ObjectPair(a, b);
 
-        if(a.equals(b)) {
+        if(visited.contains(pair)) {
             return true;
         }
+
+        visited.add(pair);
 
         if(aClass.isArray()) {
             char objectIndicator = 'L';
@@ -96,7 +114,7 @@ public class DuplicateDeepEquals implements IDuplicateEquals {
                 }
 
                 for(int i = 0; i < aArray.length; ++i) {
-                    if(!eq(aArray[i], bArray[i])) {
+                    if(!eqWithCycles(aArray[i], bArray[i], visited)) {
                         return false;
                     }
                 }
@@ -133,6 +151,7 @@ public class DuplicateDeepEquals implements IDuplicateEquals {
 
     @Override
     public boolean eq(Object a, Object b) {
+        // return Objects.deepEquals(a, b);
         return eqWithCycles(a, b, new HashSet<>());
     }
 }

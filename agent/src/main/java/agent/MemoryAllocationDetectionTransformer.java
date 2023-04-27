@@ -9,6 +9,7 @@ import java.lang.instrument.IllegalClassFormatException;
 import java.net.URISyntaxException;
 import java.security.ProtectionDomain;
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Deque;
 import java.util.List;
 
@@ -32,7 +33,8 @@ import javassist.bytecode.CodeIterator.Gap;
  */
 public class MemoryAllocationDetectionTransformer implements ClassFileTransformer {
 
-    private static final List<String> prefixFilter = List.of("java.", "sun.", "jdk.", "inject.", "org.apache.logging.log4j", "agent.");
+    private static final List<String> prefixFilter = new ArrayList<>();
+    
     private static final String configurationFile = "config.txt";
 
     private static final String[] arrayRegisterMethods = {"registerPrimitiveArray", "registerObjectArray", "registerMultiArray"};
@@ -41,6 +43,7 @@ public class MemoryAllocationDetectionTransformer implements ClassFileTransforme
     private static final int[] bytecodeEffectiveSize = {2, 3, 4};
 
     static {
+        prefixFilter.addAll(List.of("java.", "sun.", "jdk.", "inject.", "org.apache.logging.log4j", "agent."));
         try (BufferedReader br = new BufferedReader(new FileReader(configurationFile))) {
             String line;
 
@@ -74,6 +77,7 @@ public class MemoryAllocationDetectionTransformer implements ClassFileTransforme
             ProtectionDomain protectionDomain,
             byte[] classfileBuffer)
             throws IllegalClassFormatException {
+
         className = className.replace("/", ".");
 
         if(!filter(className)) {
@@ -153,7 +157,6 @@ public class MemoryAllocationDetectionTransformer implements ClassFileTransforme
         constPool.addClassInfo("inject.AllocationDetector");
         constPool.addClassInfo("inject.AllocationCounter");
 
-        // main.insertBefore("inject.AllocationDetector.configure();");
         main.insertAfter("inject.AllocationCounter.logInfo(); inject.AllocationDetector.findDuplicates();");
     }
 
